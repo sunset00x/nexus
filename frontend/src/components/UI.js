@@ -2,44 +2,77 @@ import { Component } from '../core/Component.js';
 
 export class Button extends Component {
   render() {
-    const { text, variant = 'primary', onClick, size = 'md' } = this.props;
+    const { text, variant = 'primary', onClick, size = 'md', type = 'button' } = this.props;
+
     const styles = {
-      padding: size === 'sm' ? '6px 12px' : '10px 18px',
+      width: '100%',
+      padding: size === 'sm' ? '8px 14px' : '12px 20px',
       borderRadius: '6px',
       border: 'none',
       cursor: 'pointer',
       fontWeight: '600',
-      fontSize: size === 'sm' ? '12px' : '14px',
-      backgroundColor: variant === 'primary' ? 'var(--nexus-accent)' : 'var(--nexus-bg-tertiary)',
-      color: 'var(--nexus-text-primary)',
-      transition: 'opacity 0.2s'
+      fontSize: size === 'sm' ? '13px' : '14px',
+      backgroundColor: variant === 'primary' ? 'var(--nexus-accent, #58a6ff)' : 'var(--nexus-bg-tertiary, #21262d)',
+      color: 'var(--nexus-text-primary, #ffffff)',
+      marginTop: '12px',
+      transition: 'background-color 0.2s ease',
+      display: 'inline-block',
+      textAlign: 'center'
     };
-    return this.createElement('button', { style: styles, onClick }, text);
+
+    return this.createElement('button', { type, style: styles, onClick }, text);
   }
 }
 
 export class Input extends Component {
   render() {
-    const { label, type = 'text', value = '', onInput, placeholder = '' } = this.props;
-    const inputStyle = {
+    const { label, type = 'text', value = '', onInput, placeholder = '', id } = this.props;
+
+    const containerStyle = {
+      display: 'flex',
+      flexDirection: 'column',
       width: '100%',
-      padding: '10px 12px',
-      borderRadius: '6px',
-      backgroundColor: 'var(--nexus-bg-primary)',
-      border: '1px solid var(--nexus-border)',
-      color: 'var(--nexus-text-primary)',
-      outline: 'none',
-      marginBottom: '12px'
+      marginBottom: '16px'
     };
 
-    const container = this.createElement('div', { style: { width: '100%' } });
+    const labelStyle = {
+      fontSize: '13px',
+      fontWeight: '500',
+      color: 'var(--nexus-text-secondary, #8b949e)',
+      marginBottom: '6px'
+    };
+
+    const inputStyle = {
+      width: '100%',
+      height: '40px',
+      padding: '0 12px',
+      borderRadius: '6px',
+      backgroundColor: 'var(--nexus-bg-primary, #0d1117)',
+      border: '1px solid var(--nexus-border, #30363d)',
+      color: 'var(--nexus-text-primary, #c9d1d9)',
+      fontSize: '14px',
+      outline: 'none',
+      boxSizing: 'border-box'
+    };
+
+    const attr = {
+      type,
+      placeholder,
+      onInput,
+      style: inputStyle
+    };
+
+    if (id) attr.id = id;
+    if (value !== undefined) attr.value = value;
+
+    const inputEl = this.createElement('input', attr);
+
     if (label) {
-      container.appendChild(this.createElement('label', {
-        style: { display: 'block', fontSize: '12px', color: 'var(--nexus-text-secondary)', marginBottom: '4px' }
-      }, label));
+      const labelEl = this.createElement('label', { style: labelStyle }, label);
+      return this.createElement('div', { style: containerStyle }, labelEl, inputEl);
     }
-    container.appendChild(this.createElement('input', { type, value, placeholder, onInput, style: inputStyle }));
-    return container;
+
+    return inputEl;
   }
 }
 
@@ -47,16 +80,17 @@ export class Card extends Component {
   render() {
     const { title, children } = this.props;
     const cardStyle = {
-      backgroundColor: 'var(--nexus-bg-secondary)',
-      border: '1px solid var(--nexus-border)',
-      borderRadius: '8px',
-      padding: '20px',
-      marginBottom: '16px'
+      backgroundColor: 'var(--nexus-bg-secondary, #161b22)',
+      border: '1px solid var(--nexus-border, #30363d)',
+      borderRadius: '10px',
+      padding: '28px',
+      width: '100%',
+      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
     };
     return this.createElement(
       'div',
       { style: cardStyle },
-      title ? this.createElement('h3', { style: { marginBottom: '16px', fontSize: '16px' } }, title) : null,
+      title ? this.createElement('h2', { style: { marginBottom: '20px', fontSize: '20px', fontWeight: '600' } }, title) : null,
       children
     );
   }

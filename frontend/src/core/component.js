@@ -1,5 +1,5 @@
 /**
- * Dynamic Component Foundation with Lifecycle Handling
+ * Dynamic Component Foundation with Lifecycle & Event Handling Fixes
  */
 export class Component {
   constructor(props = {}) {
@@ -15,9 +15,14 @@ export class Component {
 
   createElement(tag, attributes = {}, ...children) {
     const el = document.createElement(tag);
+
     Object.entries(attributes).forEach(([key, val]) => {
+      if (val === null || val === undefined) return;
+
+      // Ensure event listeners (onClick, onInput, etc.) attach reliably
       if (key.startsWith('on') && typeof val === 'function') {
-        el.addEventListener(key.substring(2).toLowerCase(), val);
+        const eventName = key.substring(2).toLowerCase();
+        el.addEventListener(eventName, val);
       } else if (key === 'style' && typeof val === 'object') {
         Object.assign(el.style, val);
       } else if (key === 'className') {
@@ -28,16 +33,22 @@ export class Component {
     });
 
     children.flat().forEach(child => {
-      if (child == null) return;
-      if (child instanceof Component) el.appendChild(child.render());
-      else if (child instanceof Node) el.appendChild(child);
-      else el.appendChild(document.createTextNode(String(child)));
+      if (child === null || child === undefined) return;
+      if (child instanceof Component) {
+        el.appendChild(child.render());
+      } else if (child instanceof Node) {
+        el.appendChild(child);
+      } else {
+        el.appendChild(document.createTextNode(String(child)));
+      }
     });
 
     return el;
   }
 
-  render() { throw new Error('render() must be implemented'); }
+  render() {
+    throw new Error('render() must be implemented');
+  }
 
   mount(parent) {
     this.element = this.render();
@@ -48,10 +59,10 @@ export class Component {
 
   update() {
     if (!this.element || !this.element.parentNode) return;
-    const old = this.element;
-    const fresh = this.render();
-    old.parentNode.replaceChild(fresh, old);
-    this.element = fresh;
+    const oldElement = this.element;
+    const newElement = this.render();
+    oldElement.parentNode.replaceChild(newElement, oldElement);
+    this.element = newElement;
     this.onUpdate();
   }
 

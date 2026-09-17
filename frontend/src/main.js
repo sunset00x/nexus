@@ -1,3 +1,4 @@
+import { styleEngine } from './core/StyleEngine.js';
 import { Router } from './core/Router.js';
 import { AuthView } from './views/AuthView.js';
 import { DashboardView } from './views/DashboardView.js';

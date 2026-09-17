@@ -5,14 +5,15 @@ import { globalStore } from '../core/State.js';
 export class AuthView extends Component {
   constructor(props) {
     super(props);
-    this.state = { isRegister: false, email: '', password: '', name: '', error: '' };
+    this.state = { isRegister: false, error: '' };
+    this.formData = { email: '', password: '', name: '' };
   }
 
   async handleSubmit() {
     const endpoint = this.state.isRegister ? '/api/auth/register' : '/api/auth/login';
     const payload = this.state.isRegister
-      ? { email: this.state.email, password: this.state.password, name: this.state.name }
-      : { email: this.state.email, password: this.state.password };
+      ? { email: this.formData.email, password: this.formData.password, name: this.formData.name }
+      : { email: this.formData.email, password: this.formData.password };
 
     try {
       const res = await fetch(endpoint, {
@@ -37,8 +38,8 @@ export class AuthView extends Component {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      height: '100vh',
-      backgroundColor: 'var(--nexus-bg-primary)'
+      minHeight: '100vh',
+      backgroundColor: 'var(--nexus-bg-primary, #0d1117)'
     };
 
     return this.createElement(
@@ -46,19 +47,69 @@ export class AuthView extends Component {
       { style: wrapperStyle },
       this.createElement(
         'div',
-        { style: { width: '380px' } },
+        { style: { width: '100%', maxWidth: '400px', padding: '16px' } },
         new Card({
-          title: this.state.isRegister ? 'Create Nexus Account' : 'Login to Nexus',
+          title: this.state.isRegister ? 'Create Nexus Account' : 'Sign in to Nexus',
           children: [
-            this.state.error ? this.createElement('div', { style: { color: 'var(--nexus-danger)', fontSize: '12px', marginBottom: '12px' } }, this.state.error) : null,
-            this.state.isRegister ? new Input({ label: 'Full Name', onInput: e => this.setState({ name: e.target.value }) }) : null,
-            new Input({ label: 'Email', type: 'email', onInput: e => this.setState({ email: e.target.value }) }),
-            new Input({ label: 'Password', type: 'password', onInput: e => this.setState({ password: e.target.value }) }),
-            new Button({ text: this.state.isRegister ? 'Register' : 'Login', onClick: () => this.handleSubmit() }),
-            this.createElement('div', {
-              style: { marginTop: '16px', fontSize: '12px', color: 'var(--nexus-accent)', cursor: 'pointer', textAlign: 'center' },
-              onClick: () => this.setState({ isRegister: !this.state.isRegister, error: '' })
-            }, this.state.isRegister ? 'Already have an account? Login' : "Don't have an account? Register")
+            this.state.error
+              ? this.createElement(
+                  'div',
+                  {
+                    style: {
+                      color: '#f85149',
+                      backgroundColor: 'rgba(248, 81, 73, 0.1)',
+                      border: '1px solid #f85149',
+                      borderRadius: '6px',
+                      padding: '10px 12px',
+                      fontSize: '13px',
+                      marginBottom: '16px'
+                    }
+                  },
+                  this.state.error
+                )
+              : null,
+            this.state.isRegister
+              ? new Input({
+                  label: 'Full Name',
+                  placeholder: 'John Doe',
+                  onInput: (e) => (this.formData.name = e.target.value)
+                })
+              : null,
+            new Input({
+              label: 'Email Address',
+              type: 'email',
+              placeholder: 'name@example.com',
+              onInput: (e) => (this.formData.email = e.target.value)
+            }),
+            new Input({
+              label: 'Password',
+              type: 'password',
+              placeholder: '••••••••',
+              onInput: (e) => (this.formData.password = e.target.value)
+            }),
+            new Button({
+              text: this.state.isRegister ? 'Create Account' : 'Sign In',
+              onClick: () => this.handleSubmit()
+            }),
+            this.createElement(
+              'div',
+              {
+                style: {
+                  marginTop: '20px',
+                  fontSize: '13px',
+                  color: 'var(--nexus-accent, #58a6ff)',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                },
+                onClick: () => {
+                  this.formData = { email: '', password: '', name: '' };
+                  this.setState({ isRegister: !this.state.isRegister, error: '' });
+                }
+              },
+              this.state.isRegister
+                ? 'Already have an account? Sign in'
+                : "Don't have an account? Register"
+            )
           ]
         })
       )
