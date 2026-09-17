@@ -1,26 +1,20 @@
 import express from 'express';
+import crypto from 'crypto';
 import { Project } from '../models/Project.js';
 import { Task } from '../models/Task.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-
 router.use(authenticateToken);
 
-router.get('/', async (req, res) => {
-  try {
-    const projects = await Project.find({ 'members.user': req.user.id });
-    res.json(projects);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
+// Generate unique 6-digit code on project creation
 router.post('/', async (req, res) => {
   try {
+    const inviteCode = crypto.randomBytes(3).toString('hex').toUpperCase();
     const project = await Project.create({
       name: req.body.name,
       owner: req.user.id,
+      inviteCode,
       members: [{ user: req.user.id, role: 'OWNER' }]
     });
     res.json(project);
@@ -29,24 +23,20 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+// Join Project via Invite Code
+router.post('/join', async (req, res) => {
+  const { code } = req.body;
   try {
-    const project = await Project.findById(req.params.id);
-    const tasks = await Task.find({ projectId: req.params.id });
-    res.json({ project, tasks });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+    const project = await Project.findOne({ inviteCode: code.toUpperCase() });
+    if (!project) return res.status(404).json({ message: 'Invalid Invite Code' });
 
-router.post('/:id/tasks', async (req, res) => {
-  try {
-    const task = await Task.create({
-      projectId: req.params.id,
-      title: req.body.title,
-      status: req.body.status || 'TODO'
-    });
-    res.json(task);
+    const isMember = project.members.some(m => m.user.toString() === req.user.id);
+    if (!isMember) {
+      project.members.push({ user: req.user.id, role: 'MEMBER' });
+      await project.save();
+    }
+
+    res.json({ success: true, projectId: project._id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
